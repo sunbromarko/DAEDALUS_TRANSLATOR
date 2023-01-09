@@ -73,7 +73,7 @@ varValueAssignment: '=' expression;
 parameterList: '(' (parameterDecl (',' parameterDecl)*? )? ')';
 parameterDecl: Var dataType nameNode ('[' arraySize ']')?;
 statementBlock: '{' ( ( (statement ';')  | ( (ifBlockStatement | whileStatement) ';'? ) ) )*? '}';
-statement: assignment | returnStatement | constDef | varDecl | breakStatement | continueStatement | expression;
+statement: assignment | returnStatement | constDef | varDecl | breakStatement | continueStatement | functionCall | expression ;
 functionCall: nameNode '(' ( expression ( ',' expression )*? )? ')';
 assignment: reference assignmentOperator expression;
 elseBlock: Else statementBlock;

@@ -1,6 +1,7 @@
 import { TerminalNode } from "antlr4ts/tree/TerminalNode";
 import { ErrorNode } from "antlr4ts/tree/ErrorNode";
 import { ParserRuleContext } from "antlr4ts";
+import _ from "lodash";
 import { mkdir, writeFileSync } from "fs";
 import { dirname } from "path";
 import { DaedalusListener } from "./grammar/DaedalusListener";
@@ -80,9 +81,15 @@ export class ToTSListener implements DaedalusListener {
 
   result = "";
 
+  printLine(line: string) {
+    this.result += line + "\n";
+  }
+
   enterDaedalusFile(ctx: DaedalusFileContext): void {
     this.result += "// Начало файла\n";
     //TODO: Добавить все импорты
+    this.printLine("const globalObj:any = {};");
+    this.printLine("");
 
     return;
   }
@@ -137,51 +144,84 @@ export class ToTSListener implements DaedalusListener {
     return;
   }
   enterInstanceDef(ctx: InstanceDefContext): void {
+    //parse Vars
+    const callbacks: string[] = [];
+    const properties: any = {};
+    //
     this.result += "// Создание экземпляра класса\n";
-    const children = ctx.children;
-    if (children) {
-      const nameNode = children[1];
-      const parantRef = children[3];
-      if (nameNode) {
-        const name = nameNode.text;
-        const refName = parantRef.text;
-        this.currentInstance = name;
-        this.result += `export const ${name} = new ${refName}()\n`;
+    const nameNode = ctx.nameNode().text;
+    const parentRef = ctx.parentReference().text;
+    const blockDef = ctx.statementBlock();
+    this.printLine(`export const ${nameNode}:${parentRef} = {`);
+    const statements = blockDef.statement();
+    for (const statement of statements) {
+      console.log(statement.text);
+      // Обработка вызовов функций внутри блока
+      const functionCall = statement.functionCall();
+      if (functionCall) {
+        const functionName = functionCall.nameNode().text;
+        const functionArgs = functionCall.expression().map((e) =>{
+          if(e.text === "self") return nameNode;
+          return e.text;
+        });
+        
+
+        callbacks.push(`()=>${functionName}(${functionArgs})`);
+      }
+
+      // Обработка присвоений переменных внутри блока
+      const assignment = statement.assignment();
+      if (assignment) {
+        const referenceAtom = assignment.reference().referenceAtom();
+        const PathParts = referenceAtom.map((a) => {
+          const arrayIndex = a.arrayIndex();
+          const name = a.nameNode().text;
+          if (arrayIndex) {
+            return `${name}.${arrayIndex.text}`;
+          }
+          return name;
+        });
+        _.set(properties, PathParts.join("."), `${assignment.expression().text}`);
       }
     }
+
+    this.printLine(`id: "${nameNode}",`)
+    this.printLine(`properties: ${JSON.stringify(properties)},`);
+    this.printLine(`callbacks: [${callbacks.join(",")}],`);
     return;
   }
 
   exitInstanceDef(ctx: InstanceDefContext): void {
+    this.printLine("};");
     this.currentInstance = undefined;
     return;
   }
 
-  exitFunctionCall(ctx: FunctionCallContext): void {
-    const functionName = ctx.getChild(0).text;
-    const expressions = ctx.expression().map((e) => e.text);
-    const params = expressions.join(",");
-    if (this.currentInstance) {
-      this.result += `${this.currentInstance}.${functionName}(${params});\n`;
-    } else {
-      this.result += `${functionName}(${params});\n`;
-    }
-    return;
-  }
+  // exitFunctionCall(ctx: FunctionCallContext): void {
+  //   const functionName = ctx.getChild(0).text;
+  //   const expressions = ctx.expression().map((e) => e.text);
+  //   const params = expressions.join(",");
+  //   if (this.currentInstance) {
+  //     this.result += `${this.currentInstance}.${functionName}(${params});\n`;
+  //   } else {
+  //     this.result += `${functionName}(${params});\n`;
+  //   }
+  //   return;
+  // }
 
   // Присваивание переменных
-  exitAssignment(ctx: AssignmentContext): void {
-    const referenceAtom = ctx.reference().referenceAtom();
-    const PathParts = referenceAtom.map((a) => {
-      const arrayIndex = a.arrayIndex();
-      const name = a.nameNode().text;
-      if (arrayIndex) {
-        return `${name}["${arrayIndex.text}"]`;
-      }
-      return name;
-    });
-    const parametrValue = ctx.getChild(2).text;
-    this.result += `${this.currentInstance}.${PathParts.join(".")}=${parametrValue};\n`;
-    return;
-  }
+  // exitAssignment(ctx: AssignmentContext): void {
+  //   const referenceAtom = ctx.reference().referenceAtom();
+  //   const PathParts = referenceAtom.map((a) => {
+  //     const arrayIndex = a.arrayIndex();
+  //     const name = a.nameNode().text;
+  //     if (arrayIndex) {
+  //       return `${name}["${arrayIndex.text}"]`;
+  //     }
+  //     return name;
+  //   });
+  //   const parametrValue = ctx.getChild(2).text;
+  //   this.result += `${this.currentInstance}.${PathParts.join(".")}=${parametrValue};\n`;
+  //   return;
+  // }
 }

@@ -1,4 +1,4 @@
-// Generated from ./grammar/Daedalus.g4 by ANTLR 4.9.0-SNAPSHOT
+// Generated from ./daedalus_parser/grammar/Daedalus.g4 by ANTLR 4.9.0-SNAPSHOT
 
 
 import { ParseTreeListener } from "antlr4ts/tree/ParseTreeListener";
