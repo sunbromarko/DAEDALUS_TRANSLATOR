@@ -1,0 +1,7 @@
+node_modules
+
+daedalus_parser/_input/*
+daedalus_parser/_output/*
+
+zen_parser/_input/*
+zen_parser/_output/*
