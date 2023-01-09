@@ -1,64 +1,15 @@
-import { TerminalNode } from "antlr4ts/tree/TerminalNode";
-import { ErrorNode } from "antlr4ts/tree/ErrorNode";
-import { ParserRuleContext } from "antlr4ts";
 import _ from "lodash";
 import { mkdir, writeFileSync } from "fs";
 import { dirname } from "path";
 import { DaedalusListener } from "./grammar/DaedalusListener";
 import {
-  AddOperatorContext,
-  ArrayIndexContext,
-  ArraySizeContext,
-  AssignmentContext,
-  AssignmentOperatorContext,
-  BinAndOperatorContext,
-  BinOrOperatorContext,
-  BitMoveOperatorContext,
-  BlockDefContext,
-  BreakStatementContext,
   ClassDefContext,
-  CompOperatorContext,
-  ConstArrayAssignmentContext,
-  ConstArrayDefContext,
   ConstDefContext,
-  ConstValueAssignmentContext,
-  ConstValueDefContext,
-  ContinueStatementContext,
   DaedalusFileContext,
-  DataTypeContext,
-  ElseBlockContext,
-  ElseIfBlockContext,
-  EqOperatorContext,
-  ExpressionContext,
   ExternFunctionDeclContext,
-  FunctionCallContext,
   FunctionDefContext,
-  IfBlockContext,
-  IfBlockStatementContext,
-  InlineDefContext,
-  InstanceDeclContext,
   InstanceDefContext,
-  LogAndOperatorContext,
-  LogOrOperatorContext,
-  MultOperatorContext,
-  NameNodeContext,
-  ParameterDeclContext,
-  ParameterListContext,
-  ParentReferenceContext,
   PrototypeDefContext,
-  ReferenceAtomContext,
-  ReferenceContext,
-  ReturnStatementContext,
-  StatementBlockContext,
-  StatementContext,
-  UnaryOperatorContext,
-  ValueContext,
-  VarArrayAssignmentContext,
-  VarArrayDeclContext,
-  VarDeclContext,
-  VarValueAssignmentContext,
-  VarValueDeclContext,
-  WhileStatementContext,
 } from "./grammar/DaedalusParser";
 
 function writeFile(path: string, contents: string, errorCallback = (err: any) => {}) {
@@ -83,6 +34,20 @@ export class ToTSListener implements DaedalusListener {
 
   printLine(line: string) {
     this.result += line + "\n";
+  }
+
+  printObjectNested(obj:any, name){
+    this.printLine(`${name}: {`);
+    const keys = Object.keys(obj);
+    for (const key of keys) {
+      const value = obj[key];
+      if (typeof value === "object") {
+        this.printObjectNested(value, key);
+      } else {
+        this.printLine(`${key}:${value},`);
+      }
+    }
+    this.printLine(`},`);
   }
 
   enterDaedalusFile(ctx: DaedalusFileContext): void {
@@ -186,7 +151,8 @@ export class ToTSListener implements DaedalusListener {
     }
 
     this.printLine(`id: "${nameNode}",`)
-    this.printLine(`properties: ${JSON.stringify(properties)},`);
+    this.printLine(`type: "${parentRef}",`)
+    this.printObjectNested(properties, "properties");
     this.printLine(`callbacks: [${callbacks.join(",")}],`);
     return;
   }
@@ -196,32 +162,4 @@ export class ToTSListener implements DaedalusListener {
     this.currentInstance = undefined;
     return;
   }
-
-  // exitFunctionCall(ctx: FunctionCallContext): void {
-  //   const functionName = ctx.getChild(0).text;
-  //   const expressions = ctx.expression().map((e) => e.text);
-  //   const params = expressions.join(",");
-  //   if (this.currentInstance) {
-  //     this.result += `${this.currentInstance}.${functionName}(${params});\n`;
-  //   } else {
-  //     this.result += `${functionName}(${params});\n`;
-  //   }
-  //   return;
-  // }
-
-  // Присваивание переменных
-  // exitAssignment(ctx: AssignmentContext): void {
-  //   const referenceAtom = ctx.reference().referenceAtom();
-  //   const PathParts = referenceAtom.map((a) => {
-  //     const arrayIndex = a.arrayIndex();
-  //     const name = a.nameNode().text;
-  //     if (arrayIndex) {
-  //       return `${name}["${arrayIndex.text}"]`;
-  //     }
-  //     return name;
-  //   });
-  //   const parametrValue = ctx.getChild(2).text;
-  //   this.result += `${this.currentInstance}.${PathParts.join(".")}=${parametrValue};\n`;
-  //   return;
-  // }
 }
