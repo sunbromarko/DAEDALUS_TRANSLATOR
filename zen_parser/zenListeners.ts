@@ -10,23 +10,23 @@ export class ZenToJsonListener implements ZenListener {
 
   exitMain(ctx: MainContext): void {}
 
-  enterHead(ctx: HeadContext): void {}
+  // enterHead(ctx: HeadContext): void {}
 
-  exitHead(ctx: HeadContext): void {}
+  // exitHead(ctx: HeadContext): void {}
 
-  enterBlock(ctx: BlockContext): void {}
+  // enterBlock(ctx: BlockContext): void {}
 
-  exitBlock(ctx: BlockContext): void {}
+  // exitBlock(ctx: BlockContext): void {}
 
-  enterBlockName(ctx: BlockNameContext): void {}
+  // enterBlockName(ctx: BlockNameContext): void {}
 
-  exitBlockName(ctx: BlockNameContext): void {}
+  // exitBlockName(ctx: BlockNameContext): void {}
 
-  enterClassPath(ctx: ClassPathContext): void {}
+  // enterClassPath(ctx: ClassPathContext): void {}
 
-  exitClassPath(ctx: ClassPathContext): void {}
+  // exitClassPath(ctx: ClassPathContext): void {}
 
-  enterAttr(ctx: AttrContext): void {}
+  // enterAttr(ctx: AttrContext): void {}
 
-  exitAttr(ctx: AttrContext): void {}
+  // exitAttr(ctx: AttrContext): void {}
 }
