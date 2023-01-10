@@ -53,9 +53,6 @@ export class ToTSListener implements DaedalusListener {
   enterDaedalusFile(ctx: DaedalusFileContext): void {
     this.result += "// Начало файла\n";
     //TODO: Добавить все импорты
-    this.printLine("const globalObj:any = {};");
-    this.printLine("");
-
     return;
   }
   exitDaedalusFile(ctx: DaedalusFileContext): void {
@@ -64,50 +61,35 @@ export class ToTSListener implements DaedalusListener {
     return;
   }
 
-  enterExternFunctionDecl(ctx: ExternFunctionDeclContext): void {
-    return;
-  }
-  exitExternFunctionDecl(ctx: ExternFunctionDeclContext): void {
-    return;
-  }
   enterFunctionDef(ctx: FunctionDefContext): void {
-    this.result += "// Определение функции функции\n";
+    this.printLine("// Определение функции");
 
-    const children = ctx.children;
-    if (children) {
-      const nameNode = children[2];
-      const parameterList = children[3];
-      if (nameNode) {
-        const name = nameNode.text;
-        // TODO - parse parameter list
-        const params = parameterList.text;
-        this.result += `export function ${name}${params}:void {\n`;
+    const funcName = ctx.nameNode().text;
+    const ParamsList = ctx.parameterList().text;
+     this.printLine(`export function ${funcName}${ParamsList}{`);
+
+    const statements = ctx.statementBlock().statement();
+    for (const statement of statements){
+      const functionCall = statement.functionCall()
+      if(functionCall){
+        this.printLine(functionCall.text)
+      }
+
+      const assigment = statement.assignment()
+      if(assigment){
+        const paramName = assigment.reference().text
+        const paramValue = assigment.expression().text
+        this.printLine(`${paramName}=${paramValue}`);
       }
     }
+
+
+    
+    this.printLine("};")
+    this.printLine("")
     return;
   }
-  exitFunctionDef(ctx: FunctionDefContext): void {
-    this.result += "}\n";
-    return;
-  }
-  enterConstDef(ctx: ConstDefContext): void {
-    return;
-  }
-  exitConstDef(ctx: ConstDefContext): void {
-    return;
-  }
-  enterClassDef(ctx: ClassDefContext): void {
-    return;
-  }
-  exitClassDef(ctx: ClassDefContext): void {
-    return;
-  }
-  enterPrototypeDef(ctx: PrototypeDefContext): void {
-    return;
-  }
-  exitPrototypeDef(ctx: PrototypeDefContext): void {
-    return;
-  }
+
   enterInstanceDef(ctx: InstanceDefContext): void {
     //parse Vars
     const callbacks: string[] = [];
@@ -120,7 +102,6 @@ export class ToTSListener implements DaedalusListener {
     this.printLine(`export const ${nameNode}:${parentRef} = {`);
     const statements = blockDef.statement();
     for (const statement of statements) {
-      console.log(statement.text);
       // Обработка вызовов функций внутри блока
       const functionCall = statement.functionCall();
       if (functionCall) {
@@ -146,6 +127,7 @@ export class ToTSListener implements DaedalusListener {
           }
           return name;
         });
+          
         _.set(properties, PathParts.join("."), `${assignment.expression().text}`);
       }
     }
@@ -159,6 +141,7 @@ export class ToTSListener implements DaedalusListener {
 
   exitInstanceDef(ctx: InstanceDefContext): void {
     this.printLine("};");
+    this.printLine("");
     this.currentInstance = undefined;
     return;
   }
