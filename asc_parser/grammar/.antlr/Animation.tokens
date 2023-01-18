@@ -1,0 +1,16 @@
+ID=1
+INT=2
+FloatLiteral=3
+STRING=4
+Digit=5
+PointFloat=6
+ExponentFloat=7
+Exponent=8
+INT_FLOAT_SEQUENCE=9
+ASTERISK=10
+WS=11
+OPEN_BRACE=12
+CLOSE_BRACE=13
+'*'=10
+'{'=12
+'}'=13
