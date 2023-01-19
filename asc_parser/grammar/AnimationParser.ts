@@ -39,8 +39,9 @@ export class AnimationParser extends Parser {
 	public static readonly INT_FLOAT_SEQUENCE = 9;
 	public static readonly ASTERISK = 10;
 	public static readonly WS = 11;
-	public static readonly OPEN_BRACE = 12;
-	public static readonly CLOSE_BRACE = 13;
+	public static readonly Newline = 12;
+	public static readonly OPEN_BRACE = 13;
+	public static readonly CLOSE_BRACE = 14;
 	public static readonly RULE_file = 0;
 	public static readonly RULE_property = 1;
 	public static readonly RULE_object = 2;
@@ -53,12 +54,12 @@ export class AnimationParser extends Parser {
 
 	private static readonly _LITERAL_NAMES: Array<string | undefined> = [
 		undefined, undefined, undefined, undefined, undefined, undefined, undefined, 
-		undefined, undefined, undefined, "'*'", undefined, "'{'", "'}'",
+		undefined, undefined, undefined, "'*'", undefined, undefined, "'{'", "'}'",
 	];
 	private static readonly _SYMBOLIC_NAMES: Array<string | undefined> = [
 		undefined, "ID", "INT", "FloatLiteral", "STRING", "Digit", "PointFloat", 
-		"ExponentFloat", "Exponent", "INT_FLOAT_SEQUENCE", "ASTERISK", "WS", "OPEN_BRACE", 
-		"CLOSE_BRACE",
+		"ExponentFloat", "Exponent", "INT_FLOAT_SEQUENCE", "ASTERISK", "WS", "Newline", 
+		"OPEN_BRACE", "CLOSE_BRACE",
 	];
 	public static readonly VOCABULARY: Vocabulary = new VocabularyImpl(AnimationParser._LITERAL_NAMES, AnimationParser._SYMBOLIC_NAMES, []);
 
@@ -134,23 +135,24 @@ export class AnimationParser extends Parser {
 			this.enterOuterAlt(_localctx, 1);
 			{
 			this.state = 18;
+			this.match(AnimationParser.ASTERISK);
+			this.state = 19;
 			this.key();
-			this.state = 21;
+			this.state = 22;
 			this._errHandler.sync(this);
 			switch (this._input.LA(1)) {
 			case AnimationParser.OPEN_BRACE:
 				{
-				this.state = 19;
+				this.state = 20;
 				this.object();
 				}
 				break;
-			case AnimationParser.EOF:
 			case AnimationParser.INT:
 			case AnimationParser.FloatLiteral:
 			case AnimationParser.STRING:
 			case AnimationParser.INT_FLOAT_SEQUENCE:
 				{
-				this.state = 20;
+				this.state = 21;
 				this.value();
 				}
 				break;
@@ -181,23 +183,23 @@ export class AnimationParser extends Parser {
 		try {
 			this.enterOuterAlt(_localctx, 1);
 			{
-			this.state = 23;
+			this.state = 24;
 			this.match(AnimationParser.OPEN_BRACE);
-			this.state = 27;
+			this.state = 28;
 			this._errHandler.sync(this);
 			_la = this._input.LA(1);
 			while (_la === AnimationParser.ASTERISK) {
 				{
 				{
-				this.state = 24;
+				this.state = 25;
 				this.property();
 				}
 				}
-				this.state = 29;
+				this.state = 30;
 				this._errHandler.sync(this);
 				_la = this._input.LA(1);
 			}
-			this.state = 30;
+			this.state = 31;
 			this.match(AnimationParser.CLOSE_BRACE);
 			}
 		}
@@ -223,9 +225,9 @@ export class AnimationParser extends Parser {
 		try {
 			this.enterOuterAlt(_localctx, 1);
 			{
-			this.state = 32;
+			this.state = 33;
 			_la = this._input.LA(1);
-			if (!(((((_la - -1)) & ~0x1F) === 0 && ((1 << (_la - -1)) & ((1 << (AnimationParser.EOF - -1)) | (1 << (AnimationParser.INT - -1)) | (1 << (AnimationParser.FloatLiteral - -1)) | (1 << (AnimationParser.STRING - -1)) | (1 << (AnimationParser.INT_FLOAT_SEQUENCE - -1)))) !== 0))) {
+			if (!((((_la) & ~0x1F) === 0 && ((1 << _la) & ((1 << AnimationParser.INT) | (1 << AnimationParser.FloatLiteral) | (1 << AnimationParser.STRING) | (1 << AnimationParser.INT_FLOAT_SEQUENCE))) !== 0))) {
 			this._errHandler.recoverInline(this);
 			} else {
 				if (this._input.LA(1) === Token.EOF) {
@@ -258,8 +260,6 @@ export class AnimationParser extends Parser {
 		try {
 			this.enterOuterAlt(_localctx, 1);
 			{
-			this.state = 34;
-			this.match(AnimationParser.ASTERISK);
 			this.state = 35;
 			this.match(AnimationParser.ID);
 			}
@@ -280,24 +280,24 @@ export class AnimationParser extends Parser {
 	}
 
 	public static readonly _serializedATN: string =
-		"\x03\uC91D\uCABA\u058D\uAFBA\u4F53\u0607\uEA8B\uC241\x03\x0F(\x04\x02" +
+		"\x03\uC91D\uCABA\u058D\uAFBA\u4F53\u0607\uEA8B\uC241\x03\x10(\x04\x02" +
 		"\t\x02\x04\x03\t\x03\x04\x04\t\x04\x04\x05\t\x05\x04\x06\t\x06\x03\x02" +
 		"\x07\x02\x0E\n\x02\f\x02\x0E\x02\x11\v\x02\x03\x02\x03\x02\x03\x03\x03" +
-		"\x03\x03\x03\x05\x03\x18\n\x03\x03\x04\x03\x04\x07\x04\x1C\n\x04\f\x04" +
-		"\x0E\x04\x1F\v\x04\x03\x04\x03\x04\x03\x05\x03\x05\x03\x06\x03\x06\x03" +
-		"\x06\x03\x06\x02\x02\x02\x07\x02\x02\x04\x02\x06\x02\b\x02\n\x02\x02\x03" +
-		"\x04\x03\x04\x06\v\v\x02%\x02\x0F\x03\x02\x02\x02\x04\x14\x03\x02\x02" +
-		"\x02\x06\x19\x03\x02\x02\x02\b\"\x03\x02\x02\x02\n$\x03\x02\x02\x02\f" +
-		"\x0E\x05\x04\x03\x02\r\f\x03\x02\x02\x02\x0E\x11\x03\x02\x02\x02\x0F\r" +
-		"\x03\x02\x02\x02\x0F\x10\x03\x02\x02\x02\x10\x12\x03\x02\x02\x02\x11\x0F" +
-		"\x03\x02\x02\x02\x12\x13\x07\x02\x02\x03\x13\x03\x03\x02\x02\x02\x14\x17" +
-		"\x05\n\x06\x02\x15\x18\x05\x06\x04\x02\x16\x18\x05\b\x05\x02\x17\x15\x03" +
-		"\x02\x02\x02\x17\x16\x03\x02\x02\x02\x18\x05\x03\x02\x02\x02\x19\x1D\x07" +
-		"\x0E\x02\x02\x1A\x1C\x05\x04\x03\x02\x1B\x1A\x03\x02\x02\x02\x1C\x1F\x03" +
-		"\x02\x02\x02\x1D\x1B\x03\x02\x02\x02\x1D\x1E\x03\x02\x02\x02\x1E \x03" +
-		"\x02\x02\x02\x1F\x1D\x03\x02\x02\x02 !\x07\x0F\x02\x02!\x07\x03\x02\x02" +
-		"\x02\"#\t\x02\x02\x02#\t\x03\x02\x02\x02$%\x07\f\x02\x02%&\x07\x03\x02" +
-		"\x02&\v\x03\x02\x02\x02\x05\x0F\x17\x1D";
+		"\x03\x03\x03\x03\x03\x05\x03\x19\n\x03\x03\x04\x03\x04\x07\x04\x1D\n\x04" +
+		"\f\x04\x0E\x04 \v\x04\x03\x04\x03\x04\x03\x05\x03\x05\x03\x06\x03\x06" +
+		"\x03\x06\x02\x02\x02\x07\x02\x02\x04\x02\x06\x02\b\x02\n\x02\x02\x03\x04" +
+		"\x02\x04\x06\v\v\x02%\x02\x0F\x03\x02\x02\x02\x04\x14\x03\x02\x02\x02" +
+		"\x06\x1A\x03\x02\x02\x02\b#\x03\x02\x02\x02\n%\x03\x02\x02\x02\f\x0E\x05" +
+		"\x04\x03\x02\r\f\x03\x02\x02\x02\x0E\x11\x03\x02\x02\x02\x0F\r\x03\x02" +
+		"\x02\x02\x0F\x10\x03\x02\x02\x02\x10\x12\x03\x02\x02\x02\x11\x0F\x03\x02" +
+		"\x02\x02\x12\x13\x07\x02\x02\x03\x13\x03\x03\x02\x02\x02\x14\x15\x07\f" +
+		"\x02\x02\x15\x18\x05\n\x06\x02\x16\x19\x05\x06\x04\x02\x17\x19\x05\b\x05" +
+		"\x02\x18\x16\x03\x02\x02\x02\x18\x17\x03\x02\x02\x02\x19\x05\x03\x02\x02" +
+		"\x02\x1A\x1E\x07\x0F\x02\x02\x1B\x1D\x05\x04\x03\x02\x1C\x1B\x03\x02\x02" +
+		"\x02\x1D \x03\x02\x02\x02\x1E\x1C\x03\x02\x02\x02\x1E\x1F\x03\x02\x02" +
+		"\x02\x1F!\x03\x02\x02\x02 \x1E\x03\x02\x02\x02!\"\x07\x10\x02\x02\"\x07" +
+		"\x03\x02\x02\x02#$\t\x02\x02\x02$\t\x03\x02\x02\x02%&\x07\x03\x02\x02" +
+		"&\v\x03\x02\x02\x02\x05\x0F\x18\x1E";
 	public static __ATN: ATN;
 	public static get _ATN(): ATN {
 		if (!AnimationParser.__ATN) {
@@ -349,6 +349,7 @@ export class FileContext extends ParserRuleContext {
 
 
 export class PropertyContext extends ParserRuleContext {
+	public ASTERISK(): TerminalNode { return this.getToken(AnimationParser.ASTERISK, 0); }
 	public key(): KeyContext {
 		return this.getRuleContext(0, KeyContext);
 	}
@@ -431,7 +432,6 @@ export class ValueContext extends ParserRuleContext {
 	public INT_FLOAT_SEQUENCE(): TerminalNode | undefined { return this.tryGetToken(AnimationParser.INT_FLOAT_SEQUENCE, 0); }
 	public FloatLiteral(): TerminalNode | undefined { return this.tryGetToken(AnimationParser.FloatLiteral, 0); }
 	public STRING(): TerminalNode | undefined { return this.tryGetToken(AnimationParser.STRING, 0); }
-	public EOF(): TerminalNode | undefined { return this.tryGetToken(AnimationParser.EOF, 0); }
 	constructor(parent: ParserRuleContext | undefined, invokingState: number) {
 		super(parent, invokingState);
 	}
@@ -461,7 +461,6 @@ export class ValueContext extends ParserRuleContext {
 
 
 export class KeyContext extends ParserRuleContext {
-	public ASTERISK(): TerminalNode { return this.getToken(AnimationParser.ASTERISK, 0); }
 	public ID(): TerminalNode { return this.getToken(AnimationParser.ID, 0); }
 	constructor(parent: ParserRuleContext | undefined, invokingState: number) {
 		super(parent, invokingState);

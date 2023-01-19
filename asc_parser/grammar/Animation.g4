@@ -2,12 +2,12 @@ grammar Animation;
 
 file: property* EOF;
 
-property: key (object|value);
+property: ASTERISK key (object|value);
 object: OPEN_BRACE property* CLOSE_BRACE;
 
-value: INT | INT_FLOAT_SEQUENCE | FloatLiteral | STRING | EOF;
+value: INT | INT_FLOAT_SEQUENCE | FloatLiteral | STRING;
 
-key: ASTERISK ID;
+key: ID;
 ID: DIGIT? Char NextChar*;
 
 fragment Char: Letter ;
@@ -25,9 +25,9 @@ Exponent: [eE] [+-]? Digit+;
 INT_FLOAT_SEQUENCE: (INT | FloatLiteral) (WS (INT | FloatLiteral))*;
 
 ASTERISK: '*';
-WS: [ \t\r\n]+ ->skip;
-//WS: [ \t]+ -> skip;
-//Newline: ('\r' '\n'? | '\n') -> skip;
+//WS: [ \t\r\n]+ ->skip;
+WS: [ \t]+ -> skip;
+Newline: ('\r' '\n'? | '\n') -> skip;
 OPEN_BRACE: '{';
 CLOSE_BRACE: '}';
 

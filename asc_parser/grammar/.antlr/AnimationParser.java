@@ -17,7 +17,8 @@ public class AnimationParser extends Parser {
 		new PredictionContextCache();
 	public static final int
 		ID=1, INT=2, FloatLiteral=3, STRING=4, Digit=5, PointFloat=6, ExponentFloat=7, 
-		Exponent=8, INT_FLOAT_SEQUENCE=9, ASTERISK=10, WS=11, OPEN_BRACE=12, CLOSE_BRACE=13;
+		Exponent=8, INT_FLOAT_SEQUENCE=9, ASTERISK=10, WS=11, Newline=12, OPEN_BRACE=13, 
+		CLOSE_BRACE=14;
 	public static final int
 		RULE_file = 0, RULE_property = 1, RULE_object = 2, RULE_value = 3, RULE_key = 4;
 	private static String[] makeRuleNames() {
@@ -30,14 +31,15 @@ public class AnimationParser extends Parser {
 	private static String[] makeLiteralNames() {
 		return new String[] {
 			null, null, null, null, null, null, null, null, null, null, "'*'", null, 
-			"'{'", "'}'"
+			null, "'{'", "'}'"
 		};
 	}
 	private static final String[] _LITERAL_NAMES = makeLiteralNames();
 	private static String[] makeSymbolicNames() {
 		return new String[] {
 			null, "ID", "INT", "FloatLiteral", "STRING", "Digit", "PointFloat", "ExponentFloat", 
-			"Exponent", "INT_FLOAT_SEQUENCE", "ASTERISK", "WS", "OPEN_BRACE", "CLOSE_BRACE"
+			"Exponent", "INT_FLOAT_SEQUENCE", "ASTERISK", "WS", "Newline", "OPEN_BRACE", 
+			"CLOSE_BRACE"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
@@ -142,6 +144,7 @@ public class AnimationParser extends Parser {
 	}
 
 	public static class PropertyContext extends ParserRuleContext {
+		public TerminalNode ASTERISK() { return getToken(AnimationParser.ASTERISK, 0); }
 		public KeyContext key() {
 			return getRuleContext(KeyContext.class,0);
 		}
@@ -164,23 +167,24 @@ public class AnimationParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(18);
+			match(ASTERISK);
+			setState(19);
 			key();
-			setState(21);
+			setState(22);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case OPEN_BRACE:
 				{
-				setState(19);
+				setState(20);
 				object();
 				}
 				break;
-			case EOF:
 			case INT:
 			case FloatLiteral:
 			case STRING:
 			case INT_FLOAT_SEQUENCE:
 				{
-				setState(20);
+				setState(21);
 				value();
 				}
 				break;
@@ -222,23 +226,23 @@ public class AnimationParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(23);
+			setState(24);
 			match(OPEN_BRACE);
-			setState(27);
+			setState(28);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==ASTERISK) {
 				{
 				{
-				setState(24);
+				setState(25);
 				property();
 				}
 				}
-				setState(29);
+				setState(30);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(30);
+			setState(31);
 			match(CLOSE_BRACE);
 			}
 		}
@@ -258,7 +262,6 @@ public class AnimationParser extends Parser {
 		public TerminalNode INT_FLOAT_SEQUENCE() { return getToken(AnimationParser.INT_FLOAT_SEQUENCE, 0); }
 		public TerminalNode FloatLiteral() { return getToken(AnimationParser.FloatLiteral, 0); }
 		public TerminalNode STRING() { return getToken(AnimationParser.STRING, 0); }
-		public TerminalNode EOF() { return getToken(AnimationParser.EOF, 0); }
 		public ValueContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -272,9 +275,9 @@ public class AnimationParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(32);
+			setState(33);
 			_la = _input.LA(1);
-			if ( !(((((_la - -1)) & ~0x3f) == 0 && ((1L << (_la - -1)) & ((1L << (EOF - -1)) | (1L << (INT - -1)) | (1L << (FloatLiteral - -1)) | (1L << (STRING - -1)) | (1L << (INT_FLOAT_SEQUENCE - -1)))) != 0)) ) {
+			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << INT) | (1L << FloatLiteral) | (1L << STRING) | (1L << INT_FLOAT_SEQUENCE))) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -296,7 +299,6 @@ public class AnimationParser extends Parser {
 	}
 
 	public static class KeyContext extends ParserRuleContext {
-		public TerminalNode ASTERISK() { return getToken(AnimationParser.ASTERISK, 0); }
 		public TerminalNode ID() { return getToken(AnimationParser.ID, 0); }
 		public KeyContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -310,8 +312,6 @@ public class AnimationParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(34);
-			match(ASTERISK);
 			setState(35);
 			match(ID);
 			}
@@ -328,17 +328,17 @@ public class AnimationParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\17(\4\2\t\2\4\3\t"+
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\20(\4\2\t\2\4\3\t"+
 		"\3\4\4\t\4\4\5\t\5\4\6\t\6\3\2\7\2\16\n\2\f\2\16\2\21\13\2\3\2\3\2\3\3"+
-		"\3\3\3\3\5\3\30\n\3\3\4\3\4\7\4\34\n\4\f\4\16\4\37\13\4\3\4\3\4\3\5\3"+
-		"\5\3\6\3\6\3\6\3\6\2\2\7\2\4\6\b\n\2\3\4\3\4\6\13\13\2%\2\17\3\2\2\2\4"+
-		"\24\3\2\2\2\6\31\3\2\2\2\b\"\3\2\2\2\n$\3\2\2\2\f\16\5\4\3\2\r\f\3\2\2"+
-		"\2\16\21\3\2\2\2\17\r\3\2\2\2\17\20\3\2\2\2\20\22\3\2\2\2\21\17\3\2\2"+
-		"\2\22\23\7\2\2\3\23\3\3\2\2\2\24\27\5\n\6\2\25\30\5\6\4\2\26\30\5\b\5"+
-		"\2\27\25\3\2\2\2\27\26\3\2\2\2\30\5\3\2\2\2\31\35\7\16\2\2\32\34\5\4\3"+
-		"\2\33\32\3\2\2\2\34\37\3\2\2\2\35\33\3\2\2\2\35\36\3\2\2\2\36 \3\2\2\2"+
-		"\37\35\3\2\2\2 !\7\17\2\2!\7\3\2\2\2\"#\t\2\2\2#\t\3\2\2\2$%\7\f\2\2%"+
-		"&\7\3\2\2&\13\3\2\2\2\5\17\27\35";
+		"\3\3\3\3\3\3\5\3\31\n\3\3\4\3\4\7\4\35\n\4\f\4\16\4 \13\4\3\4\3\4\3\5"+
+		"\3\5\3\6\3\6\3\6\2\2\7\2\4\6\b\n\2\3\4\2\4\6\13\13\2%\2\17\3\2\2\2\4\24"+
+		"\3\2\2\2\6\32\3\2\2\2\b#\3\2\2\2\n%\3\2\2\2\f\16\5\4\3\2\r\f\3\2\2\2\16"+
+		"\21\3\2\2\2\17\r\3\2\2\2\17\20\3\2\2\2\20\22\3\2\2\2\21\17\3\2\2\2\22"+
+		"\23\7\2\2\3\23\3\3\2\2\2\24\25\7\f\2\2\25\30\5\n\6\2\26\31\5\6\4\2\27"+
+		"\31\5\b\5\2\30\26\3\2\2\2\30\27\3\2\2\2\31\5\3\2\2\2\32\36\7\17\2\2\33"+
+		"\35\5\4\3\2\34\33\3\2\2\2\35 \3\2\2\2\36\34\3\2\2\2\36\37\3\2\2\2\37!"+
+		"\3\2\2\2 \36\3\2\2\2!\"\7\20\2\2\"\7\3\2\2\2#$\t\2\2\2$\t\3\2\2\2%&\7"+
+		"\3\2\2&\13\3\2\2\2\5\17\30\36";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {
