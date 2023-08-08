@@ -2,15 +2,7 @@ import _ from "lodash";
 import { mkdir, writeFileSync } from "fs";
 import { dirname } from "path";
 import { DaedalusListener } from "./grammar/DaedalusListener";
-import {
-  ClassDefContext,
-  ConstDefContext,
-  DaedalusFileContext,
-  ExternFunctionDeclContext,
-  FunctionDefContext,
-  InstanceDefContext,
-  PrototypeDefContext,
-} from "./grammar/DaedalusParser";
+import { ClassDefContext, ConstDefContext, DaedalusFileContext, ExternFunctionDeclContext, FunctionDefContext, InstanceDefContext, PrototypeDefContext } from "./grammar/DaedalusParser";
 
 function writeFile(path: string, contents: string, errorCallback = (err: any) => {}) {
   mkdir(dirname(path), { recursive: true }, function (err) {
@@ -36,7 +28,7 @@ export class ToTSListener implements DaedalusListener {
     this.result += line + "\n";
   }
 
-  printObjectNested(obj:any, name){
+  printObjectNested(obj: any, name) {
     this.printLine(`${name}: {`);
     const keys = Object.keys(obj);
     for (const key of keys) {
@@ -66,27 +58,25 @@ export class ToTSListener implements DaedalusListener {
 
     const funcName = ctx.nameNode().text;
     const ParamsList = ctx.parameterList().text;
-     this.printLine(`export function ${funcName}${ParamsList}{`);
+    this.printLine(`export function ${funcName}${ParamsList}{`);
 
     const statements = ctx.statementBlock().statement();
-    for (const statement of statements){
-      const functionCall = statement.functionCall()
-      if(functionCall){
-        this.printLine(functionCall.text)
+    for (const statement of statements) {
+      const functionCall = statement.functionCall();
+      if (functionCall) {
+        this.printLine(functionCall.text);
       }
 
-      const assigment = statement.assignment()
-      if(assigment){
-        const paramName = assigment.reference().text
-        const paramValue = assigment.expression().text
+      const assigment = statement.assignment();
+      if (assigment) {
+        const paramName = assigment.reference().text;
+        const paramValue = assigment.expression().text;
         this.printLine(`${paramName}=${paramValue}`);
       }
     }
 
-
-    
-    this.printLine("};")
-    this.printLine("")
+    this.printLine("};");
+    this.printLine("");
     return;
   }
 
@@ -106,13 +96,12 @@ export class ToTSListener implements DaedalusListener {
       const functionCall = statement.functionCall();
       if (functionCall) {
         const functionName = functionCall.nameNode().text;
-        const functionArgs = functionCall.expression().map((e) =>{
-          if(e.text === "self") return nameNode;
+        const functionArgs = functionCall.expression().map((e) => {
+          if (e.text === "self") return nameNode;
           return e.text;
         });
-        
 
-        callbacks.push(`()=>${functionName}(${functionArgs})`);
+        callbacks.push(`{name:"${functionName}", args:[${functionArgs.map((e) => (e.includes('"') ? e : `"${e}"`)).join(",")}]}`);
       }
 
       // Обработка присвоений переменных внутри блока
@@ -127,13 +116,13 @@ export class ToTSListener implements DaedalusListener {
           }
           return name;
         });
-          
+
         _.set(properties, PathParts.join("."), `${assignment.expression().text}`);
       }
     }
 
-    this.printLine(`id: "${nameNode}",`)
-    this.printLine(`type: "${parentRef}",`)
+    this.printLine(`id: "${nameNode}",`);
+    this.printLine(`type: "${parentRef}",`);
     this.printObjectNested(properties, "properties");
     this.printLine(`callbacks: [${callbacks.join(",")}],`);
     return;

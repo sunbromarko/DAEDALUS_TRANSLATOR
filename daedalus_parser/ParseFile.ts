@@ -5,9 +5,10 @@ import { DaedalusParser } from "./grammar/DaedalusParser";
 import { readFileSync } from "fs";
 import { ToTSListener } from "./listener";
 import { DaedalusListener } from "./grammar/DaedalusListener";
+import { DialogsListener } from "./dialogs_listener";
 
 export function ParseFile(filePath: string) {
-  const file = readFileSync(filePath, "utf8");
+  const file = readFileSync(filePath, "latin1");
   let inputStream = CharStreams.fromString(file);
   let lexer = new DaedalusLexer(inputStream);
   let tokenStream = new CommonTokenStream(lexer);
@@ -18,8 +19,8 @@ export function ParseFile(filePath: string) {
   let tree = parser.daedalusFile();
 
   let walker = new ParseTreeWalker();
-  const newFilePath = filePath.replace(".d", ".ts").replace("_input", "_output");
-  let listener = new ToTSListener(newFilePath);
+  const newFilePath = filePath.replace(".d", ".yarn").replace("_input", "_output");
+  let listener = new DialogsListener(newFilePath);
 
   walker.walk(listener as DaedalusListener, tree);
 }

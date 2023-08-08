@@ -4,4 +4,10 @@ declare global {
   };
 
   class Npc_Default {}
+
+  class C_Item {}
+
+  const HUETA = 10;
 }
+
+export {};
