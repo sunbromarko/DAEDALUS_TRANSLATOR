@@ -6,8 +6,9 @@ import { readFileSync } from "fs";
 import { ToTSListener } from "./listener";
 import { DaedalusListener } from "./grammar/DaedalusListener";
 import { DialogsListener } from "./dialogs_listener";
+import { ImportantListener } from "./important_listener";
 
-export function ParseFile(filePath: string) {
+export function ParseFile(filePath: string, listener: DaedalusListener) {
   const file = readFileSync(filePath, "latin1");
   let inputStream = CharStreams.fromString(file);
   let lexer = new DaedalusLexer(inputStream);
@@ -19,8 +20,6 @@ export function ParseFile(filePath: string) {
   let tree = parser.daedalusFile();
 
   let walker = new ParseTreeWalker();
-  const newFilePath = filePath.replace(".d", ".yarn").replace("_input", "_output");
-  let listener = new DialogsListener(newFilePath);
 
   walker.walk(listener as DaedalusListener, tree);
 }
