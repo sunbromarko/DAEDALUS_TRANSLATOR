@@ -3,17 +3,14 @@ import { mkdir, writeFileSync } from "fs";
 import { dirname } from "path";
 import { DaedalusListener } from "./grammar/DaedalusListener";
 import {
-  ClassDefContext,
-  ConstDefContext,
   DaedalusFileContext,
   ElseBlockContext,
   ElseIfBlockContext,
-  ExternFunctionDeclContext,
+  FunctionCallContext,
   FunctionDefContext,
   IfBlockContext,
   IfBlockStatementContext,
   InstanceDefContext,
-  PrototypeDefContext,
   StatementBlockContext,
   StatementContext,
 } from "./grammar/DaedalusParser";
@@ -30,34 +27,20 @@ export class DialogsListener implements DaedalusListener {
   constructor(outputFile: string) {
     this.outputFile = outputFile;
   }
+
+  NPC_NAME: string;
+
   outputFile: string;
   // Пока мы внутри определения экземпляра, полагаем что все присвоения переменных - это присвоения полей этого экземпляра
   currentInstance?: string;
   // Список определенных переменных, если тут нет переменной, то она определена в глобальной области видимости
   definedVariables: string[] = [];
 
-  result = "";
+  conditionFunctions = new Map<string, FunctionDefContext>();
 
   dialogsInstances = new Map<string, any>();
+
   dialogsFunctions = [];
-
-  printLine(line: string) {
-    this.result += line + "\n";
-  }
-
-  printObjectNested(obj: any, name) {
-    this.printLine(`${name}: {`);
-    const keys = Object.keys(obj);
-    for (const key of keys) {
-      const value = obj[key];
-      if (typeof value === "object") {
-        this.printObjectNested(value, key);
-      } else {
-        this.printLine(`${key}:${value},`);
-      }
-    }
-    this.printLine(`},`);
-  }
 
   parseStatementBlock(ctx: StatementBlockContext): string[] {
     let result = [];
@@ -66,7 +49,9 @@ export class DialogsListener implements DaedalusListener {
       if (block instanceof StatementContext) {
         const functionCall = block.functionCall();
         if (functionCall) {
-          result.push(`<< ${functionCall.text} >>`);
+          const [success, line] = this.ParseLineFromFunctionCallContext(functionCall);
+          success ?? result.push(line);
+          !success ?? console.log(`unrecognized func: ${line}`);
           // this.printLine(functionCall.text);
         }
 
@@ -107,10 +92,16 @@ export class DialogsListener implements DaedalusListener {
   }
 
   enterDaedalusFile(ctx: DaedalusFileContext): void {
-    //TODO: Добавить все импорты
     return;
   }
   exitDaedalusFile(ctx: DaedalusFileContext): void {
+    this.GenerateYarn();
+    this.GenerateCSharp();
+    return;
+  }
+
+  private GenerateYarn() {
+    let yarnResult = "";
     const dialogNodes = [...this.dialogsInstances.entries()].sort((a, b) => {
       const nr1 = Number(a[1].properties.nr);
       const nr2 = Number(b[1].properties.nr);
@@ -126,19 +117,19 @@ export class DialogsListener implements DaedalusListener {
       // a должно быть равным b
       return 0;
     });
-
-    let NPC_NAME = "";
+    let NPC_NAME: string;
     // Generete rootNode
-    const rootNodes = dialogNodes.map(([name, { properties }]) => {
+    const rootNodes = dialogNodes.map(([name, { properties }], i, arr) => {
       const { permanent, condition, information, description, npc } = properties;
+      const isLast = i === arr.length - 1;
+      this.NPC_NAME = npc;
       if (!NPC_NAME) NPC_NAME = npc;
       // <<if ${condition}()>>
-      return `
--> ${description} <<if ${condition}() ${permanent === "1" ? ">>" : `&& !visited("${information}") >>`}
-  <<jump ${information}>>`;
+      return `-> ${description} <<if ${condition}() ${permanent === "1" ? ">>" : `&& !visited("${information}") >>`} #line:${name.toUpperCase()}
+  <<jump ${information}>>${!isLast ? "\n" : ""}`;
     });
 
-    this.result += `
+    yarnResult += `
 title: ${NPC_NAME}
 ---
 ${rootNodes.join("")}
@@ -146,52 +137,77 @@ ${rootNodes.join("")}
 `;
 
     for (const dialog of this.dialogsFunctions) {
-      this.result += `
-
+      yarnResult += `
 title: ${dialog.name}
 tracking: always
 ---
 ${dialog.lines.join("\n")}
 
--> Вернуться назад
-    <<jump ${NPC_NAME}>>
+<<jump ${NPC_NAME}>>
 ===
 
 `;
     }
 
-    writeFile(this.outputFile, this.result);
-    return;
+    writeFile(this.outputFile, yarnResult);
   }
+
+  private GenerateCSharp() {
+    const Conditions = [...this.conditionFunctions.values()];
+    const conditionFunctionsStrings = [];
+
+    for (const condition of Conditions) {
+      const funcName = condition.nameNode().text;
+      conditionFunctionsStrings.push(
+        `
+    /// ${condition.text}
+    [YarnFunction("${funcName}")]
+    public static bool ${funcName}(){
+      return true;
+    }
+`
+      );
+    }
+
+    let SharpResult = `using UnityEngine;
+using Yarn.Unity;
+
+public class ${this.NPC_NAME}_ConditionsHandler : MonoBehaviour
+{
+    ${conditionFunctionsStrings.join("\n")}
+}
+`;
+
+    const sharpFileName = this.outputFile.replace(".yarn", ".cs");
+
+    writeFile(sharpFileName, SharpResult);
+  }
+
   enterFunctionDef(ctx: FunctionDefContext): void {
     const dialog = { lines: [] };
     const funcName = ctx.nameNode().text;
 
-    if (funcName.includes("_Condition")) return;
+    if (funcName.includes("_Condition")) {
+      // Write condition for generete C# code
+      this.conditionFunctions.set(funcName, ctx);
+      return;
+    }
 
     dialog["name"] = funcName;
 
     const statementBlock = ctx.statementBlock();
     dialog.lines = this.parseStatementBlock(statementBlock);
 
-    // for (const block of statementBlocks) {
-    //   const statement = block.statement();
-
-    // }
-
     this.dialogsFunctions.push(dialog);
     return;
   }
 
   enterInstanceDef(ctx: InstanceDefContext): void {
-    //parse Vars
     const properties: any = {};
-    //
 
     const nameNode = ctx.nameNode().text;
-    const parentRef = ctx.parentReference().text;
     const blockDef = ctx.statementBlock();
-    // this.printLine(`export const ${nameNode}:${parentRef} = {`);
+
     const statements = blockDef.statement();
     for (const statement of statements) {
       // Обработка присвоений переменных внутри блока
@@ -211,7 +227,26 @@ ${dialog.lines.join("\n")}
       }
     }
 
+    if (!this.NPC_NAME) {
+      this.NPC_NAME = (properties.npc.split("_") as string[]).pop();
+    }
+
     this.dialogsInstances.set(nameNode, { properties });
     return;
+  }
+
+  ParseLineFromFunctionCallContext(functionCall: FunctionCallContext): [recognized: boolean, result: string] {
+    const functionName = functionCall.nameNode().text;
+    const functionArgs = functionCall.expression().map((e) => e.text);
+
+    switch (functionName) {
+      case "AI_Output":
+        const whoSpeak = ["hero", "other"].includes(functionArgs[0]) ? "Nameless" : this.NPC_NAME;
+        return [true, `${whoSpeak}: Строка диалога. #line:${functionArgs[2].toUpperCase().replace('"', "")}`];
+      case "AI_StopProcessInfos":
+        return [true, `<< stop >>`];
+      default:
+        return [false, functionName];
+    }
   }
 }
