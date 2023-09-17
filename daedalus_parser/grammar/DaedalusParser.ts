@@ -1467,9 +1467,9 @@ export class DaedalusParser extends Parser {
 			this.state = 340;
 			this.match(DaedalusParser.If);
 			this.state = 341;
-			this.expression(0);
+			_localctx._exp = this.expression(0);
 			this.state = 342;
-			this.statementBlock();
+			_localctx._body = this.statementBlock();
 			}
 		}
 		catch (re) {
@@ -1496,9 +1496,9 @@ export class DaedalusParser extends Parser {
 			this.state = 344;
 			this.match(DaedalusParser.If);
 			this.state = 345;
-			this.expression(0);
+			_localctx._exp = this.expression(0);
 			this.state = 346;
-			this.statementBlock();
+			_localctx._body = this.statementBlock();
 			}
 		}
 		catch (re) {
@@ -1736,7 +1736,7 @@ export class DaedalusParser extends Parser {
 				(_localctx as UnaryExpressionContext)._oper = this.unaryOperator();
 				}
 				this.state = 378;
-				this.expression(11);
+				(_localctx as UnaryExpressionContext)._right = this.expression(11);
 				}
 				break;
 			case DaedalusParser.Null:
@@ -1776,6 +1776,7 @@ export class DaedalusParser extends Parser {
 					case 1:
 						{
 						_localctx = new MultExpressionContext(new ExpressionContext(_parentctx, _parentState));
+						(_localctx as MultExpressionContext)._left = _prevctx;
 						this.pushNewRecursionContext(_localctx, _startState, DaedalusParser.RULE_expression);
 						this.state = 383;
 						if (!(this.precpred(this._ctx, 10))) {
@@ -1786,13 +1787,14 @@ export class DaedalusParser extends Parser {
 						(_localctx as MultExpressionContext)._oper = this.multOperator();
 						}
 						this.state = 385;
-						this.expression(11);
+						(_localctx as MultExpressionContext)._right = this.expression(11);
 						}
 						break;
 
 					case 2:
 						{
 						_localctx = new AddExpressionContext(new ExpressionContext(_parentctx, _parentState));
+						(_localctx as AddExpressionContext)._left = _prevctx;
 						this.pushNewRecursionContext(_localctx, _startState, DaedalusParser.RULE_expression);
 						this.state = 387;
 						if (!(this.precpred(this._ctx, 9))) {
@@ -1803,13 +1805,14 @@ export class DaedalusParser extends Parser {
 						(_localctx as AddExpressionContext)._oper = this.addOperator();
 						}
 						this.state = 389;
-						this.expression(10);
+						(_localctx as AddExpressionContext)._right = this.expression(10);
 						}
 						break;
 
 					case 3:
 						{
 						_localctx = new BitMoveExpressionContext(new ExpressionContext(_parentctx, _parentState));
+						(_localctx as BitMoveExpressionContext)._left = _prevctx;
 						this.pushNewRecursionContext(_localctx, _startState, DaedalusParser.RULE_expression);
 						this.state = 391;
 						if (!(this.precpred(this._ctx, 8))) {
@@ -1820,13 +1823,14 @@ export class DaedalusParser extends Parser {
 						(_localctx as BitMoveExpressionContext)._oper = this.bitMoveOperator();
 						}
 						this.state = 393;
-						this.expression(9);
+						(_localctx as BitMoveExpressionContext)._right = this.expression(9);
 						}
 						break;
 
 					case 4:
 						{
 						_localctx = new CompExpressionContext(new ExpressionContext(_parentctx, _parentState));
+						(_localctx as CompExpressionContext)._left = _prevctx;
 						this.pushNewRecursionContext(_localctx, _startState, DaedalusParser.RULE_expression);
 						this.state = 395;
 						if (!(this.precpred(this._ctx, 7))) {
@@ -1837,13 +1841,14 @@ export class DaedalusParser extends Parser {
 						(_localctx as CompExpressionContext)._oper = this.compOperator();
 						}
 						this.state = 397;
-						this.expression(8);
+						(_localctx as CompExpressionContext)._right = this.expression(8);
 						}
 						break;
 
 					case 5:
 						{
 						_localctx = new EqExpressionContext(new ExpressionContext(_parentctx, _parentState));
+						(_localctx as EqExpressionContext)._left = _prevctx;
 						this.pushNewRecursionContext(_localctx, _startState, DaedalusParser.RULE_expression);
 						this.state = 399;
 						if (!(this.precpred(this._ctx, 6))) {
@@ -1854,13 +1859,14 @@ export class DaedalusParser extends Parser {
 						(_localctx as EqExpressionContext)._oper = this.eqOperator();
 						}
 						this.state = 401;
-						this.expression(7);
+						(_localctx as EqExpressionContext)._right = this.expression(7);
 						}
 						break;
 
 					case 6:
 						{
 						_localctx = new BinAndExpressionContext(new ExpressionContext(_parentctx, _parentState));
+						(_localctx as BinAndExpressionContext)._left = _prevctx;
 						this.pushNewRecursionContext(_localctx, _startState, DaedalusParser.RULE_expression);
 						this.state = 403;
 						if (!(this.precpred(this._ctx, 5))) {
@@ -1871,13 +1877,14 @@ export class DaedalusParser extends Parser {
 						(_localctx as BinAndExpressionContext)._oper = this.binAndOperator();
 						}
 						this.state = 405;
-						this.expression(6);
+						(_localctx as BinAndExpressionContext)._right = this.expression(6);
 						}
 						break;
 
 					case 7:
 						{
 						_localctx = new BinOrExpressionContext(new ExpressionContext(_parentctx, _parentState));
+						(_localctx as BinOrExpressionContext)._left = _prevctx;
 						this.pushNewRecursionContext(_localctx, _startState, DaedalusParser.RULE_expression);
 						this.state = 407;
 						if (!(this.precpred(this._ctx, 4))) {
@@ -1888,13 +1895,14 @@ export class DaedalusParser extends Parser {
 						(_localctx as BinOrExpressionContext)._oper = this.binOrOperator();
 						}
 						this.state = 409;
-						this.expression(5);
+						(_localctx as BinOrExpressionContext)._right = this.expression(5);
 						}
 						break;
 
 					case 8:
 						{
 						_localctx = new LogAndExpressionContext(new ExpressionContext(_parentctx, _parentState));
+						(_localctx as LogAndExpressionContext)._left = _prevctx;
 						this.pushNewRecursionContext(_localctx, _startState, DaedalusParser.RULE_expression);
 						this.state = 411;
 						if (!(this.precpred(this._ctx, 3))) {
@@ -1905,13 +1913,14 @@ export class DaedalusParser extends Parser {
 						(_localctx as LogAndExpressionContext)._oper = this.logAndOperator();
 						}
 						this.state = 413;
-						this.expression(4);
+						(_localctx as LogAndExpressionContext)._right = this.expression(4);
 						}
 						break;
 
 					case 9:
 						{
 						_localctx = new LogOrExpressionContext(new ExpressionContext(_parentctx, _parentState));
+						(_localctx as LogOrExpressionContext)._left = _prevctx;
 						this.pushNewRecursionContext(_localctx, _startState, DaedalusParser.RULE_expression);
 						this.state = 415;
 						if (!(this.precpred(this._ctx, 2))) {
@@ -1922,7 +1931,7 @@ export class DaedalusParser extends Parser {
 						(_localctx as LogOrExpressionContext)._oper = this.logOrOperator();
 						}
 						this.state = 417;
-						this.expression(3);
+						(_localctx as LogOrExpressionContext)._right = this.expression(3);
 						}
 						break;
 					}
@@ -3989,6 +3998,8 @@ export class ElseBlockContext extends ParserRuleContext {
 
 
 export class ElseIfBlockContext extends ParserRuleContext {
+	public _exp!: ExpressionContext;
+	public _body!: StatementBlockContext;
 	public Else(): TerminalNode { return this.getToken(DaedalusParser.Else, 0); }
 	public If(): TerminalNode { return this.getToken(DaedalusParser.If, 0); }
 	public expression(): ExpressionContext {
@@ -4026,6 +4037,8 @@ export class ElseIfBlockContext extends ParserRuleContext {
 
 
 export class IfBlockContext extends ParserRuleContext {
+	public _exp!: ExpressionContext;
+	public _body!: StatementBlockContext;
 	public If(): TerminalNode { return this.getToken(DaedalusParser.If, 0); }
 	public expression(): ExpressionContext {
 		return this.getRuleContext(0, ExpressionContext);
@@ -4275,6 +4288,7 @@ export class BracketExpressionContext extends ExpressionContext {
 }
 export class UnaryExpressionContext extends ExpressionContext {
 	public _oper!: UnaryOperatorContext;
+	public _right!: ExpressionContext;
 	public expression(): ExpressionContext {
 		return this.getRuleContext(0, ExpressionContext);
 	}
@@ -4307,7 +4321,9 @@ export class UnaryExpressionContext extends ExpressionContext {
 	}
 }
 export class MultExpressionContext extends ExpressionContext {
+	public _left!: ExpressionContext;
 	public _oper!: MultOperatorContext;
+	public _right!: ExpressionContext;
 	public expression(): ExpressionContext[];
 	public expression(i: number): ExpressionContext;
 	public expression(i?: number): ExpressionContext | ExpressionContext[] {
@@ -4346,7 +4362,9 @@ export class MultExpressionContext extends ExpressionContext {
 	}
 }
 export class AddExpressionContext extends ExpressionContext {
+	public _left!: ExpressionContext;
 	public _oper!: AddOperatorContext;
+	public _right!: ExpressionContext;
 	public expression(): ExpressionContext[];
 	public expression(i: number): ExpressionContext;
 	public expression(i?: number): ExpressionContext | ExpressionContext[] {
@@ -4385,7 +4403,9 @@ export class AddExpressionContext extends ExpressionContext {
 	}
 }
 export class BitMoveExpressionContext extends ExpressionContext {
+	public _left!: ExpressionContext;
 	public _oper!: BitMoveOperatorContext;
+	public _right!: ExpressionContext;
 	public expression(): ExpressionContext[];
 	public expression(i: number): ExpressionContext;
 	public expression(i?: number): ExpressionContext | ExpressionContext[] {
@@ -4424,7 +4444,9 @@ export class BitMoveExpressionContext extends ExpressionContext {
 	}
 }
 export class CompExpressionContext extends ExpressionContext {
+	public _left!: ExpressionContext;
 	public _oper!: CompOperatorContext;
+	public _right!: ExpressionContext;
 	public expression(): ExpressionContext[];
 	public expression(i: number): ExpressionContext;
 	public expression(i?: number): ExpressionContext | ExpressionContext[] {
@@ -4463,7 +4485,9 @@ export class CompExpressionContext extends ExpressionContext {
 	}
 }
 export class EqExpressionContext extends ExpressionContext {
+	public _left!: ExpressionContext;
 	public _oper!: EqOperatorContext;
+	public _right!: ExpressionContext;
 	public expression(): ExpressionContext[];
 	public expression(i: number): ExpressionContext;
 	public expression(i?: number): ExpressionContext | ExpressionContext[] {
@@ -4502,7 +4526,9 @@ export class EqExpressionContext extends ExpressionContext {
 	}
 }
 export class BinAndExpressionContext extends ExpressionContext {
+	public _left!: ExpressionContext;
 	public _oper!: BinAndOperatorContext;
+	public _right!: ExpressionContext;
 	public expression(): ExpressionContext[];
 	public expression(i: number): ExpressionContext;
 	public expression(i?: number): ExpressionContext | ExpressionContext[] {
@@ -4541,7 +4567,9 @@ export class BinAndExpressionContext extends ExpressionContext {
 	}
 }
 export class BinOrExpressionContext extends ExpressionContext {
+	public _left!: ExpressionContext;
 	public _oper!: BinOrOperatorContext;
+	public _right!: ExpressionContext;
 	public expression(): ExpressionContext[];
 	public expression(i: number): ExpressionContext;
 	public expression(i?: number): ExpressionContext | ExpressionContext[] {
@@ -4580,7 +4608,9 @@ export class BinOrExpressionContext extends ExpressionContext {
 	}
 }
 export class LogAndExpressionContext extends ExpressionContext {
+	public _left!: ExpressionContext;
 	public _oper!: LogAndOperatorContext;
+	public _right!: ExpressionContext;
 	public expression(): ExpressionContext[];
 	public expression(i: number): ExpressionContext;
 	public expression(i?: number): ExpressionContext | ExpressionContext[] {
@@ -4619,7 +4649,9 @@ export class LogAndExpressionContext extends ExpressionContext {
 	}
 }
 export class LogOrExpressionContext extends ExpressionContext {
+	public _left!: ExpressionContext;
 	public _oper!: LogOrOperatorContext;
+	public _right!: ExpressionContext;
 	public expression(): ExpressionContext[];
 	public expression(i: number): ExpressionContext;
 	public expression(i?: number): ExpressionContext | ExpressionContext[] {

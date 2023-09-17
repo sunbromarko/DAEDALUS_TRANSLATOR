@@ -6,6 +6,7 @@ import { readFileSync } from "fs";
 import { ToTSListener } from "./listener";
 import { DaedalusListener } from "./grammar/DaedalusListener";
 import { DialogsListener } from "./dialogs_listener";
+import { DialogsConditionsParser } from "./dialogs_transformer";
 
 export function ParseFile(filePath: string) {
   const file = readFileSync(filePath, "latin1");
@@ -22,5 +23,6 @@ export function ParseFile(filePath: string) {
   const newFilePath = filePath.replace(".d", ".yarn").replace("_input", "_output");
   let listener = new DialogsListener(newFilePath);
 
-  walker.walk(listener as DaedalusListener, tree);
+  walker.walk(new DialogsConditionsParser() as DaedalusListener, tree);
+  // walker.walk(listener as DaedalusListener, tree);
 }

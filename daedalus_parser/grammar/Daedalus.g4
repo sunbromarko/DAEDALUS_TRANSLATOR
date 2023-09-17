@@ -77,8 +77,8 @@ statement: assignment | returnStatement | constDef | varDecl | breakStatement | 
 functionCall: nameNode '(' ( expression ( ',' expression )*? )? ')';
 assignment: reference assignmentOperator expression;
 elseBlock: Else statementBlock;
-elseIfBlock: Else If expression statementBlock;
-ifBlock: If expression statementBlock;
+elseIfBlock: Else If exp=expression body=statementBlock;
+ifBlock: If exp=expression body=statementBlock;
 ifBlockStatement: ifBlock ( elseIfBlock )*? ( elseBlock )?;
 returnStatement: Return ( expression )?;
 whileStatement: While '(' expression ')' statementBlock;
@@ -87,16 +87,16 @@ continueStatement: Continue;
 
 expression
     : '(' expression ')' #bracketExpression
-    | (oper=unaryOperator) expression #unaryExpression
-    | expression (oper=multOperator) expression #multExpression
-    | expression (oper=addOperator) expression #addExpression
-    | expression (oper=bitMoveOperator) expression #bitMoveExpression
-    | expression (oper=compOperator) expression #compExpression
-    | expression (oper=eqOperator) expression #eqExpression
-    | expression (oper=binAndOperator) expression #binAndExpression
-    | expression (oper=binOrOperator) expression #binOrExpression
-    | expression (oper=logAndOperator) expression #logAndExpression
-    | expression (oper=logOrOperator) expression #logOrExpression
+    | (oper=unaryOperator) right=expression #unaryExpression
+    | left=expression (oper=multOperator) right=expression #multExpression
+    | left=expression (oper=addOperator) right=expression #addExpression
+    | left=expression (oper=bitMoveOperator) right=expression #bitMoveExpression
+    | left=expression (oper=compOperator) right=expression #compExpression
+    | left=expression (oper=eqOperator) right=expression #eqExpression
+    | left=expression (oper=binAndOperator) right=expression #binAndExpression
+    | left=expression (oper=binOrOperator) right=expression #binOrExpression
+    | left=expression (oper=logAndOperator) right=expression #logAndExpression
+    | left=expression (oper=logOrOperator) right=expression #logOrExpression
     | value #valueExpression
     ;
 

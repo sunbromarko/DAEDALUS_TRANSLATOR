@@ -182,7 +182,7 @@ export class DialogsListener implements DaedalusListener {
           let isAlwaysTrue: boolean;
 
           // Пытаемся понять что внутри IF блока. Если там внутри ещё IF, то его нужно обработать
-          const statementBlock = ifBlock.statementBlock();
+          const statementBlock = ifBlock._body;
           const [statement] = statementBlock.children.filter((e) => e.constructor.name !== TerminalNode.name);
           if (!statement) console.log("Одиночный IF не содержит блока кода");
           if (statement instanceof StatementContext) {
@@ -207,13 +207,13 @@ export class DialogsListener implements DaedalusListener {
             console.log(`ИСКЛЮЧЕНИЕ: ${funcName}: ${statement.constructor.name}`);
           }
 
-          const expressionBlock = ifBlock.expression();
+          const expressionBlock = ifBlock._exp;
           const expressions = expressionBlock.children.filter((e) => e.constructor.name !== TerminalNode.name);
           if (expressionBlock instanceof LogAndExpressionContext) {
-            const [left, operator, right] = expressionBlock.children;
-            // console.log(`----- ${funcName} -----`);
-            // console.log(`Сравнение: ${left.text} ...${operator.text}... ${right.text}`);
-            // console.log(`----- end -----\n`);
+            const { _left, _oper, _right } = expressionBlock;
+            console.log(`----- ${funcName} -----`);
+            console.log(`Сравнение: ${_left.text} ...${_oper.text}... ${_right.text}`);
+            console.log(`----- end -----\n`);
           }
           if (expressionBlock instanceof ValueExpressionContext) {
             // Или Функция Или Reference Или Значение(Не встречается)
@@ -232,7 +232,7 @@ export class DialogsListener implements DaedalusListener {
     return;
   }
   exitDaedalusFile(ctx: DaedalusFileContext): void {
-    // this.GenerateYarn();
+    this.GenerateYarn();
     // this.GenerateCSharp();
     // this.GenerateLog();
 
@@ -261,7 +261,7 @@ export class DialogsListener implements DaedalusListener {
     });
     let NPC_NAME: string;
     // Generete rootNode
-    const rootNodes = dialogNodes.map(([name, { properties }], i, arr) => {
+    const rootLines = dialogNodes.map(([name, { properties }], i, arr) => {
       const { permanent, condition, information, description, npc } = properties;
       const isLast = i === arr.length - 1;
       this.NPC_NAME = npc;
@@ -274,7 +274,7 @@ export class DialogsListener implements DaedalusListener {
     yarnResult += `
 title: ${NPC_NAME}
 ---
-${rootNodes.join("")}
+${rootLines.join("")}
 ===
 `;
 
