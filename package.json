@@ -7,8 +7,8 @@
     "d-parse": "ts-node ./daedalus_parser/index.ts",
     "zen-parse": "ts-node ./zen_parser/index.ts",
     "asc-parse": "ts-node ./asc_parser/index.ts",
+    "dialogs-parse": "ts-node ./dialog_strings/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-
     "genZenParserLexer": "antlr4ts -visitor ./zen_parser/grammar/Zen.g4",
     "genDParserLexer": "antlr4ts -visitor ./daedalus_parser/grammar/Daedalus.g4",
     "genASCParserLexer": "antlr4ts -visitor ./asc_parser/grammar/Animation.g4"

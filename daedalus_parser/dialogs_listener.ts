@@ -6,14 +6,18 @@ import {
   DaedalusFileContext,
   ElseBlockContext,
   ElseIfBlockContext,
+  ExpressionContext,
   FunctionCallContext,
   FunctionDefContext,
   IfBlockContext,
   IfBlockStatementContext,
   InstanceDefContext,
+  ReferenceValueContext,
   StatementBlockContext,
   StatementContext,
+  ValueExpressionContext,
 } from "./grammar/DaedalusParser";
+import { dictionary } from "./dialogs-dict";
 
 function writeFile(path: string, contents: string, errorCallback = (err: any) => {}) {
   mkdir(dirname(path), { recursive: true }, function (err) {
@@ -50,42 +54,42 @@ export class DialogsListener implements DaedalusListener {
         const functionCall = block.functionCall();
         if (functionCall) {
           const [success, line] = this.ParseLineFromFunctionCallContext(functionCall);
-          success ?? result.push(line);
-          !success ?? console.log(`unrecognized func: ${line}`);
+          success && result.push(line);
+          !success && console.log(`unrecognized func: ${line}`);
           // this.printLine(functionCall.text);
         }
 
         const assigment = block.assignment();
         if (assigment) {
           const paramName = assigment.reference().text;
-          const paramValue = assigment.expression().text;
-          result.push(`<< set $${paramName}=${paramValue} >>`);
+          const res = this.ParseExpressionContext(assigment.expression());
+          result.push(`<<set $${paramName}=${res}>>`);
         }
       }
       if (block instanceof IfBlockStatementContext) {
         for (const ifBlock of block.children) {
           if (ifBlock instanceof IfBlockContext) {
             const expression = ifBlock.expression().text;
-            result.push(`$<< if ${expression}>>`);
+            result.push(`<<if true>>`);
             const content = ifBlock.statementBlock();
             result.push(...this.parseStatementBlock(content));
           }
 
           if (ifBlock instanceof ElseIfBlockContext) {
             const expression = ifBlock.expression().text;
-            result.push(`$<< elseif ${expression}>>`);
+            result.push(`<<elseif false>>`);
             const content = ifBlock.statementBlock();
             result.push(...this.parseStatementBlock(content));
           }
 
           if (ifBlock instanceof ElseBlockContext) {
-            result.push("<< else >>");
+            result.push("<<else>>");
             const content = ifBlock.statementBlock();
             result.push(...this.parseStatementBlock(content));
           }
         }
 
-        result.push("<< endif >>");
+        result.push("<<endif>>");
       }
     }
     return result;
@@ -242,11 +246,27 @@ public class ${this.NPC_NAME}_ConditionsHandler : MonoBehaviour
     switch (functionName) {
       case "AI_Output":
         const whoSpeak = ["hero", "other"].includes(functionArgs[0]) ? "Nameless" : this.NPC_NAME;
-        return [true, `${whoSpeak}: Строка диалога. #line:${functionArgs[2].toUpperCase().replace('"', "")}`];
+        const dialogKey = functionArgs[2].replaceAll('"', "");
+        const dialogText = dictionary.get(dialogKey) ?? "TEXT_UNDEFINED";
+        return [true, `${whoSpeak}: ${dialogText} #line:${dialogKey.toUpperCase()}`];
       case "AI_StopProcessInfos":
-        return [true, `<< stop >>`];
+        return [true, `<<stop>>`];
       default:
         return [false, functionName];
+    }
+  }
+
+  ParseExpressionContext(context: ExpressionContext) {
+    if (context instanceof ValueExpressionContext) {
+      const valueContext = context.value();
+      if (valueContext instanceof ReferenceValueContext) {
+        const { text } = valueContext;
+        let isFakeBoolean = ["FALSE", "TRUE"].includes(text);
+        if (isFakeBoolean) {
+          return text === "FALSE" ? "false" : "true";
+        }
+        return `$${text}`;
+      }
     }
   }
 }
