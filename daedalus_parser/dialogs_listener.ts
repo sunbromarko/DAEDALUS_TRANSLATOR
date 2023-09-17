@@ -8,16 +8,22 @@ import {
   ElseIfBlockContext,
   ExpressionContext,
   FunctionCallContext,
+  FunctionCallValueContext,
   FunctionDefContext,
   IfBlockContext,
   IfBlockStatementContext,
   InstanceDefContext,
+  IntegerLiteralValueContext,
+  LogAndExpressionContext,
+  LogAndOperatorContext,
   ReferenceValueContext,
+  ReturnStatementContext,
   StatementBlockContext,
   StatementContext,
   ValueExpressionContext,
 } from "./grammar/DaedalusParser";
 import { dictionary } from "./dialogs-dict";
+import { TerminalNode } from "antlr4ts/tree/TerminalNode";
 
 function writeFile(path: string, contents: string, errorCallback = (err: any) => {}) {
   mkdir(dirname(path), { recursive: true }, function (err) {
@@ -28,6 +34,32 @@ function writeFile(path: string, contents: string, errorCallback = (err: any) =>
 }
 
 const unrecognizedFunctions = new Set<string>();
+const parsedConditions = new Map<string, ParseConditionsResult>();
+
+enum ConditionType {
+  functionCall = "function_call",
+}
+
+type $OR<T> = {
+  $or: Array<T | $OR<T> | $AND<T>>;
+};
+
+type $AND<T> = {
+  $and: Array<T | $AND<T> | $OR<T>>;
+};
+
+type ParseConditionsResult =
+  | boolean
+  | {
+      alwaysTrue: true;
+    }
+  | {
+      alwaysTrue: false;
+      condition: $AND<Condition> | $OR<Condition> | Condition;
+    }
+  | { alwaysFalse: true };
+
+type Condition = Record<string, any>;
 
 export class DialogsListener implements DaedalusListener {
   constructor(outputFile: string) {
@@ -43,6 +75,8 @@ export class DialogsListener implements DaedalusListener {
   definedVariables: string[] = [];
 
   conditionFunctions = new Map<string, FunctionDefContext>();
+
+  parsedConditions = new Map<string, ParseConditionsResult>();
 
   dialogsInstances = new Map<string, any>();
 
@@ -97,13 +131,114 @@ export class DialogsListener implements DaedalusListener {
     return result;
   }
 
+  parseConditionFunctionsStatementBlock(funcName: string, ctx: StatementBlockContext): ParseConditionsResult {
+    const blocks = ctx.children;
+
+    const blocksNams = blocks.map((b) => b.constructor.name).filter((e) => e !== TerminalNode.name);
+    const isSingleStatementContext = blocksNams.length === 1 && blocksNams[0] === StatementContext.name;
+    const isSingleIfStatementContext = blocksNams.length === 1 && blocksNams[0] === IfBlockStatementContext.name;
+
+    if (isSingleStatementContext) {
+      for (const block of blocks) {
+        if (block instanceof StatementContext) {
+          const returnContext = block.returnStatement();
+          if (returnContext) {
+            const expression = returnContext.expression() as ValueExpressionContext;
+            const value = expression.value();
+            if (!value) {
+              console.warn(`${funcName}Возвращаемое значение вероятно завернуто в (), или привести к общему виду, или страдать и реализовывать этот корнер кейс 😢`);
+            }
+            if (value instanceof FunctionCallValueContext) {
+              const functionCall = value.functionCall();
+              const functionName = functionCall.nameNode().text;
+              const functionArgs = functionCall.expression().map((e) => e.text);
+
+              return { alwaysTrue: false, condition: { type: ConditionType.functionCall, functionName, funcArgs: functionArgs } };
+            }
+            if (value instanceof IntegerLiteralValueContext) {
+              // console.log(`funcName:${funcName}, type: intLiteral,  value: ${value.text}`);
+              return value.text === "1" ? { alwaysTrue: true } : { alwaysFalse: true };
+            }
+            if (value instanceof ReferenceValueContext) {
+              // console.log(`funcName:${funcName}, type: intLiteral,  value: ${value.text}`);
+              // Предусмотрены 2 референса для диалогов ГОТИКИ 1 TRUE и FALSE
+              if (!["TRUE", "FALSE"].includes(value.text)) console.debug(`НЕ известный референс ${value.text}`);
+              return value.text === "TRUE" ? { alwaysTrue: true } : { alwaysFalse: true };
+            }
+
+            if (value) return { alwaysTrue: true };
+          }
+        }
+      }
+    }
+
+    if (isSingleIfStatementContext) {
+      for (const block of blocks) {
+        if (block instanceof IfBlockStatementContext) {
+          const ifBlock = block.ifBlock();
+          if (!ifBlock) console.log("Одиночный IF не содержит IF контекста 🤪");
+          // console.log(`${funcName}: ${ifBlock.text}`);
+          const conditions: $AND<Condition> = { $and: [] };
+          let isAlwaysTrue: boolean;
+
+          // Пытаемся понять что внутри IF блока. Если там внутри ещё IF, то его нужно обработать
+          const statementBlock = ifBlock.statementBlock();
+          const [statement] = statementBlock.children.filter((e) => e.constructor.name !== TerminalNode.name);
+          if (!statement) console.log("Одиночный IF не содержит блока кода");
+          if (statement instanceof StatementContext) {
+            const returnContext = (statement as StatementContext).returnStatement();
+            if (returnContext) {
+              const expression = returnContext.expression() as ValueExpressionContext;
+              const value = expression.value();
+              if (!value) {
+                console.warn(`${funcName}Возвращаемое значение вероятно завернуто в (), или привести к общему виду, или страдать и реализовывать этот корнер кейс 😢`);
+              }
+              if (value instanceof IntegerLiteralValueContext || value instanceof ReferenceValueContext) {
+                const { text } = value;
+                isAlwaysTrue = ["1", "TRUE"].includes(text) ? true : false;
+              } else {
+                console.log(`ВМЕСТО RETURN шняга:${funcName}`);
+              }
+            }
+          } else if (block instanceof IfBlockStatementContext) {
+            // IF в IF грёбанные извращенцы. Нужно просто склеить условия в IF
+          } else {
+            // Что же ещё придумали эти Грёбанные извращенцы !
+            console.log(`ИСКЛЮЧЕНИЕ: ${funcName}: ${statement.constructor.name}`);
+          }
+
+          const expressionBlock = ifBlock.expression();
+          const expressions = expressionBlock.children.filter((e) => e.constructor.name !== TerminalNode.name);
+          if (expressionBlock instanceof LogAndExpressionContext) {
+            const [left, operator, right] = expressionBlock.children;
+            // console.log(`----- ${funcName} -----`);
+            // console.log(`Сравнение: ${left.text} ...${operator.text}... ${right.text}`);
+            // console.log(`----- end -----\n`);
+          }
+          if (expressionBlock instanceof ValueExpressionContext) {
+            // Или Функция Или Reference Или Значение(Не встречается)
+            console.log(`----- ${funcName} -----`);
+            console.log(`Expression: ${expressionBlock.value().constructor.name}`);
+            console.log(`----- end -----\n`);
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
   enterDaedalusFile(ctx: DaedalusFileContext): void {
     return;
   }
   exitDaedalusFile(ctx: DaedalusFileContext): void {
-    this.GenerateYarn();
-    this.GenerateCSharp();
-    this.GenerateLog();
+    // this.GenerateYarn();
+    // this.GenerateCSharp();
+    // this.GenerateLog();
+
+    const resultTsFile = `const conditions =${JSON.stringify([...parsedConditions.entries()])}`;
+    writeFileSync("./daedalus_parser/_output/conditions.ts", resultTsFile);
+
     return;
   }
 
@@ -204,16 +339,16 @@ public class ${this.NPC_NAME}_ConditionsHandler : MonoBehaviour
   enterFunctionDef(ctx: FunctionDefContext): void {
     const dialog = { lines: [] };
     const funcName = ctx.nameNode().text;
+    const statementBlock = ctx.statementBlock();
 
     if (funcName.includes("_Condition")) {
-      // Write condition for generete C# code
+      parsedConditions.set(funcName, this.parseConditionFunctionsStatementBlock(funcName, statementBlock));
       this.conditionFunctions.set(funcName, ctx);
       return;
     }
 
     dialog["name"] = funcName;
 
-    const statementBlock = ctx.statementBlock();
     dialog.lines = this.parseStatementBlock(statementBlock);
 
     this.dialogsFunctions.push(dialog);
