@@ -27,6 +27,8 @@ function writeFile(path: string, contents: string, errorCallback = (err: any) =>
   });
 }
 
+const unrecognizedFunctions = new Set<string>();
+
 export class DialogsListener implements DaedalusListener {
   constructor(outputFile: string) {
     this.outputFile = outputFile;
@@ -55,7 +57,7 @@ export class DialogsListener implements DaedalusListener {
         if (functionCall) {
           const [success, line] = this.ParseLineFromFunctionCallContext(functionCall);
           success && result.push(line);
-          !success && console.log(`unrecognized func: ${line}`);
+          !success && unrecognizedFunctions.add(line);
           // this.printLine(functionCall.text);
         }
 
@@ -101,6 +103,7 @@ export class DialogsListener implements DaedalusListener {
   exitDaedalusFile(ctx: DaedalusFileContext): void {
     this.GenerateYarn();
     this.GenerateCSharp();
+    this.GenerateLog();
     return;
   }
 
@@ -187,6 +190,17 @@ public class ${this.NPC_NAME}_ConditionsHandler : MonoBehaviour
     writeFile(sharpFileName, SharpResult);
   }
 
+  private GenerateLog() {
+    // console.log(unrecognizedFunctions.values());
+
+    writeFileSync(
+      "./unrecognizedFunctions.txt",
+      `
+    ${[...unrecognizedFunctions.values()].map((e) => `${e}\n`)}
+    `
+    );
+  }
+
   enterFunctionDef(ctx: FunctionDefContext): void {
     const dialog = { lines: [] };
     const funcName = ctx.nameNode().text;
@@ -244,15 +258,35 @@ public class ${this.NPC_NAME}_ConditionsHandler : MonoBehaviour
     const functionArgs = functionCall.expression().map((e) => e.text);
 
     switch (functionName) {
-      case "AI_Output":
+      case "AI_Output": {
         const whoSpeak = ["hero", "other"].includes(functionArgs[0]) ? "Nameless" : this.NPC_NAME;
         const dialogKey = functionArgs[2].replaceAll('"', "");
         const dialogText = dictionary.get(dialogKey) ?? "TEXT_UNDEFINED";
         return [true, `${whoSpeak}: ${dialogText} #line:${dialogKey.toUpperCase()}`];
-      case "AI_StopProcessInfos":
+      }
+      case "Info_AddChoice": {
+        const [, text, jumpNode] = functionArgs;
+        return [
+          true,
+          `-> ${text} line:${jumpNode}
+    <<jump ${jumpNode}>>`,
+        ];
+      }
+      case "AI_StopProcessInfos": {
         return [true, `<<stop>>`];
-      default:
+      }
+      case "B_LogEntry": {
+        let [key, value] = functionArgs;
+        return [true, `<<log_topic_add_line QuestLog ${key} ${value}>>`];
+      }
+      // func void Log_CreateTopic( VAR STRING name, VAR INT section )
+      case "Log_CreateTopic": {
+        const [key, value] = functionArgs;
+        return [true, `<<log_create_topic QuestLog ${key} ${value}>>`];
+      }
+      default: {
         return [false, functionName];
+      }
     }
   }
 
